@@ -12,7 +12,7 @@ def think(state, quip):
     while True:
 
         iterations += 1
-        # select, expand, rollout, then backpropagate here
+        # select, expand, rollout, then backpropagate logic here
 
         t_now = time.time()
         if t_now > t_deadline:
