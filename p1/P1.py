@@ -2,26 +2,50 @@ from p1_support import load_level, show_level
 from math import sqrt
 from heapq import heappush, heappop
 
-def dijkstras_shortest_path(src, dst, graph, adj):
-	raise NotImplementedError
+class DijkstrasDungeon:
+    def __init__(self, filename):
+        self.filename = filename
+        self.level = load_level(filename)
 
-def navigation_edges(level, cell):
-	raise NotImplementedError
+    def findRoute(self, src, dst):
+        path = self.dijkstra(src, dst)
 
-def test_route(filename, src_waypoint, dst_waypoint):
-	level = load_level(filename)
+        if path:
+            show_level(self.level, path)
+        else:
+            print "No path available"
 
-	show_level(level)
+	def dijkstras_shortest_path(self, src, dst):
+        path = []
+        parents = {}
 
-	src = level['waypoints'][src_waypoint]
-	dst = level['waypoints'][dst_waypoint]
+        src_pos = self.level['waypoints'][src]
+        dst_pos = self.level['waypoints'][dst]
+        parents[src_pos] = None
+        print "src: ", src_pos, " dst:", dst_pos
 
-	path = dijkstras_shortest_path(src, dst, level, navigation_edges)
+        queue = [(0,src_pos)]
+        pathSuccess = False
+        workingPaths = []
+		checkedPaths = {}
+        checked = {}
+        checkedPaths[src_pos] = [src_pos]
 
-	if path:
-		show_level(level, path)
-	else:
-		print "No path possible!"
+		while queue:
+            node = heappop(queue)
+            if node[1] == dst_pos:
+                pathSuccess = True
+                print "Reached the goal!"
+                break
+
+            for neighbor in self.getNeighbors(node):
+                if neighbor[1] not in parents:
+                    heappush(queue, neighbor)
+                    parents[neighbor[1]] = node[1]
+                    checkedPaths[neighbor[1]] = list(checkedPaths[node[1]])
+                    checkedPaths[neighbor[1]].append(neighbor[1])
+
+            checked[node[1]] = 1  
 
 if __name__ ==  '__main__':
 	import sys
