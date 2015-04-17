@@ -22,7 +22,7 @@ class DijkstrasDungeon:
 		src_pos = self.level['waypoints'][src]
 		dst_pos = self.level['waypoints'][dst]
 		parents[src_pos] = None
-		print "src: ", src_pos, " dst:", dst_pos
+		#print "src: ", src_pos, " dst:", dst_pos
 
 		queue = [(0,src_pos)]
 		pathSuccess = False
@@ -53,7 +53,7 @@ class DijkstrasDungeon:
 			while check != src_pos:
 				check = parents[check]
 				path.append(check)
-				print check
+				#print check
 			return path
 
 		else:
