@@ -26,10 +26,6 @@ class DijkstrasDungeon:
 
 		queue = [(0,src_pos)]
 		pathSuccess = False
-		workingPaths = []
-		checkedPaths = {}
-		checked = {}
-		checkedPaths[src_pos] = [src_pos]
 
 		while queue:
 			node = heappop(queue)
@@ -42,10 +38,6 @@ class DijkstrasDungeon:
 				if neighbor[1] not in parents:
 					heappush(queue, neighbor)
 					parents[neighbor[1]] = node[1]
-					checkedPaths[neighbor[1]] = list(checkedPaths[node[1]])
-					checkedPaths[neighbor[1]].append(neighbor[1])
-
-				checked[node[1]] = 1  
 
 		if pathSuccess:
 			path = [dst_pos]

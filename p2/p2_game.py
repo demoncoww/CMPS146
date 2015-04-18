@@ -12,6 +12,7 @@ class State(object):
 	def __init__(self, game):
 		self.game = game
 		self.whos_turn = game.players[0]
+		self.player_moved = game.players[1]
 		self.box_owners = {}
 		self.h_line_owners = {}
 		self.v_line_owners = {}
@@ -19,10 +20,14 @@ class State(object):
 	def copy(self):
 		res = State(self.game)
 		res.whos_turn = self.whos_turn
+		res.player_moved = self.player_moved
 		res.box_owners = self.box_owners.copy()
 		res.h_line_owners = self.h_line_owners.copy()
 		res.v_line_owners = self.v_line_owners.copy()
 		return res
+
+	def player_moved(self):
+		return self.player_moved
 
 	def get_whos_turn(self):
 		return self.whos_turn
@@ -53,6 +58,7 @@ class State(object):
 					new_boxes += 1
 					self.box_owners[box] = self.whos_turn
 
+		self.player_moved = self.whos_turn
 		if new_boxes == 0:
 			self.whos_turn = self.game.players[(self.game.players.index(self.whos_turn)+1) % len(self.game.players)]
 

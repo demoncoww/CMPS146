@@ -25,12 +25,7 @@ def think(state, quip):
 
 		greedy_state.apply_move(move)
 
-		for i in range(MAX_DEPTH):
-			if greedy_state.is_terminal():
-				break
-			greedy_move = random.choice( greedy_state.get_moves() )
-			greedy_state.apply_move( greedy_move )
-
+		
 		total_score += outcome(greedy_state.get_score())
 
 		expectation = float(total_score)
