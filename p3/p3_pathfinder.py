@@ -1,13 +1,14 @@
 import math
+import heapq
+from heapq import heappush, heappop
 
-def find_path(source_point, destination_point, mesh):
+def find_path(src, dst, mesh):
     visited_boxes = []
+    distances = {}
     path = []
     box_fringe = []
     parent = {}
     detail_points = {} #holds the endpoint of a segment going through that box
-    src = source_point
-    dst = destination_point
     found_src = False
     found_dst = False
     srcBox = (0,0,0,0)
@@ -17,7 +18,8 @@ def find_path(source_point, destination_point, mesh):
         if src[0] in range (box[0], box[1]) and src[1] in range (box[2], box[3]):
             print "Src Box is", box, " and Source is ", src
             found_src = True
-            box_fringe.append(box)
+            heappush(box_fringe, (0, box))
+            distances[box] = 0
             visited_boxes.append(box)
             srcBox = box
         if dst[0] in range (box[0], box[1]) and dst[1] in range (box[2], box[3]):
@@ -27,20 +29,31 @@ def find_path(source_point, destination_point, mesh):
             detail_points[dstBox] = dst
         if found_dst and found_src:
             break
-
+    if not found_src:
+        print "Source point not on graph."
+        return path, visited_boxes
+    if not found_dst:
+        print "Destination point not on graph."
+        return path, visited_boxes
     #print visited_boxes
     while (box_fringe): #pop the first item on the fringe
-        curr_box = box_fringe.pop(0)
+        curr_box = heappop(box_fringe)[1]
         children = mesh['adj'][curr_box]
         for child in children:
             if child not in visited_boxes:
                 visited_boxes.append(child)
-                box_fringe.append(child)
+                x1 = (curr_box[2] + curr_box[3])/2
+                y1 = (curr_box[0] + curr_box[1])/2
+                x2 = (child[2] + child[3])/2
+                y2 = (child[0] + child[1])/2
+                distances[child] = distances[curr_box] + euclidDist(x1, y1, x2, y2)
+                score = distances[child] + euclidBoxHeuristic(child, dstBox) #add heuristic here for A*
+                heappush(box_fringe, (score, child))
                 parent[child] = curr_box
             if child is dstBox:
                 pathBox = child
                 while parent[pathBox]:
-                    print pathBox
+                    #print pathBox
                     pathBox = parent[pathBox]
                     if pathBox is srcBox: #build usable path
                         currBox = dstBox
@@ -62,9 +75,10 @@ def find_path(source_point, destination_point, mesh):
                         path.append(last_segment)
                         detail_points[currBox] = last_segment[1]
                         path.append((detail_points[currBox], src))
-                        print path
+                        #print path
                         return path, visited_boxes
     print "No path found!"
+    return (path, visited_boxes)
 
 
 def buildSegment(pt, currBox, nextBox):
@@ -129,3 +143,10 @@ class boxnode:
     def __init__(self,  box = None, parent = None):
         self.box = box
         self.parent = parent
+        
+def euclidBoxHeuristic (myBox, dstBox):
+    x1 = (myBox[2] + myBox[3])/2
+    y1 = (myBox[0] + myBox[1])/2
+    x2 = (dstBox[2] + dstBox[3])/2
+    y2 = (dstBox[0] + dstBox[1])/2
+    return euclidDist(x1, y1, x2, y2)
