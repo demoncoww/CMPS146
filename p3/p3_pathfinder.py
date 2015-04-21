@@ -69,58 +69,62 @@ def find_path(source_point, destination_point, mesh):
 
 def buildSegment(pt, currBox, nextBox):
     nextPt = pt
-    if(currBox[0] is nextBox[1]): #sharing currBox left edge
-        xPt = currBox[0]
-        yMax = min(currBox[3], nextBox[3])
-        yMin = max(currBox[2], nextBox[2])
-        prevDist = 100000000
+    if(currBox[2] == nextBox[3]): #sharing currBox left edge
+        xPt = currBox[2]
+        yMax = min(currBox[1], nextBox[1])
+        yMin = max(currBox[0], nextBox[0])
+        prevDist = 100000000.0
         currDist = prevDist - 1
         yPt = yMin
         while(prevDist > currDist and yPt <= yMax):
             prevDist = currDist
-            currDist = euclidDist(pt[0], pt[1], xPt, yPt)
+            currDist = euclidDist(pt[1], pt[0], xPt, yPt)
             yPt+=1
-        nextPt = (xPt, yPt - 1)
-    if(currBox[1] is nextBox[0]): #sharing currBox right edge
-        xPt = currBox[1]
-        yMax = min(currBox[3], nextBox[3])
-        yMin = max(currBox[2], nextBox[2])
-        prevDist = 100000000
+        nextPt = (yPt - 1, xPt)
+    if(currBox[3] == nextBox[2]): #sharing currBox right edge
+        xPt = currBox[3]
+        yMax = min(currBox[1], nextBox[1])
+        yMin = max(currBox[0], nextBox[0])
+        prevDist = 100000000.0
         currDist = prevDist - 1
         yPt = yMin
         while(prevDist > currDist and yPt <= yMax):
             prevDist = currDist
-            currDist = euclidDist(pt[0], pt[1], xPt, yPt)
+            currDist = euclidDist(pt[1], pt[0], xPt, yPt)
             yPt+=1
-        nextPt = (xPt, yPt - 1)
-    if(currBox[2] is nextBox[3]): #sharing currBox top edge
-        yPt = currBox[2]
-        xMax = min(currBox[1], nextBox[1])
-        xMin = max(currBox[0], nextBox[0])
-        prevDist = 100000000
+        nextPt = (yPt - 1, xPt)
+    if(currBox[0] == nextBox[1]): #sharing currBox top edge
+        yPt = currBox[0]
+        xMax = min(currBox[3], nextBox[3])
+        xMin = max(currBox[2], nextBox[2])
+        prevDist = 100000000.0
         currDist = prevDist - 1
         xPt = xMin
         while(prevDist > currDist and xPt <= xMax):
             prevDist = currDist
-            currDist = euclidDist(pt[0], pt[1], xPt, yPt)
+            currDist = euclidDist(pt[1], pt[0], xPt, yPt)
             xPt+=1
-        nextPt = (xPt - 1, yPt)
-    if(currBox[3] is nextBox[2]): #sharing currBox bottom edge
-        yPt = currBox[3]
-        xMax = min(currBox[1], nextBox[1])
-        xMin = max(currBox[0], nextBox[0])
-        prevDist = 100000000
+        nextPt = (yPt, xPt - 1)
+    if(currBox[1] == nextBox[0]): #sharing currBox bottom edge
+        yPt = currBox[1]
+        xMax = min(currBox[3], nextBox[3])
+        xMin = max(currBox[2], nextBox[2])
+        prevDist = 100000000.0
         currDist = prevDist - 1
         xPt = xMin
         while(prevDist > currDist and xPt <= xMax):
             prevDist = currDist
-            currDist = euclidDist(pt[0], pt[1], xPt, yPt)
+            currDist = euclidDist(pt[1], pt[0], xPt, yPt)
             xPt+=1
-        nextPt = (xPt - 1, yPt)
+        nextPt = (yPt, xPt - 1)
     return pt, nextPt
 
 def euclidDist(x1, y1, x2, y2):
-    return ((((x1-x2)**2)+((y1-y2)**2))**(1/2))
+    x = ((x1-x2)**2)
+    y = ((y1-y2)**2)
+    z = x+y
+    return math.sqrt(z)
+
 class boxnode:
     def __init__(self,  box = None, parent = None):
         self.box = box
