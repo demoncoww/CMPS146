@@ -42,7 +42,11 @@ def find_path(src, dst, mesh):
         print "Destination point not on graph."
         return path, visited_boxes
     #print visited_boxes
-
+    
+    if srcBox == dstBox:
+        path.append((src, dst))
+        return path, visited_boxes
+    
     while (box_fringe): #pop the first item on the fringe
         priority, popped_box, popped_goal = heappop(box_fringe)
         children = mesh['adj'][popped_box]
@@ -69,13 +73,17 @@ def find_path(src, dst, mesh):
                 bck_parent[child] = popped_box
             if ((popped_goal is 'dst' and child in bck_distances) or (popped_goal is 'src' and child in fwd_distances)):
                 currBox = child
-                nextBox = fwd_parent[currBox]
-                segment = buildSegment((((child[0]+child[1])/2),((child[2]+child[3])/2)), currBox, nextBox) #build from destination through curr to next
-                path.append(segment)
-                detail_points[currBox] = segment[1]
                 prevBox = currBox
-                currBox = nextBox
-                nextBox = fwd_parent[nextBox]
+                nextBox = currBox
+                if nextBox is not srcBox:
+                    nextBox = fwd_parent[currBox]
+                    segment = buildSegment((((child[0]+child[1])/2),((child[2]+child[3])/2)), currBox, nextBox) #build from destination through curr to next
+                    path.append(segment)
+                    detail_points[currBox] = segment[1]
+                    prevBox = currBox
+                    currBox = nextBox
+                if nextBox is not srcBox:
+                    nextBox = fwd_parent[nextBox]
                 while (nextBox is not srcBox):
                     this_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
                     path.append(this_segment)
@@ -90,16 +98,19 @@ def find_path(src, dst, mesh):
                 #print path
 
                 currBox = child
-                nextBox = bck_parent[currBox]
-                x = (child[2]+child[3])/2
-                y = (child[0]+child[1])/2
-                print "Child = ", child, " x = ", x, " y = ", y
-                segment = buildSegment((y, x), currBox, nextBox) #build from destination through curr to next
-                path.append(segment)
-                detail_points[currBox] = segment[1]
                 prevBox = currBox
-                currBox = nextBox
-                nextBox = bck_parent[nextBox]
+                nextBox = currBox
+                if nextBox is not dstBox:
+                    nextBox = bck_parent[currBox]
+                    x = (child[2]+child[3])/2
+                    y = (child[0]+child[1])/2
+                    segment = buildSegment((y, x), currBox, nextBox) #build from destination through curr to next
+                    path.append(segment)
+                    detail_points[currBox] = segment[1]
+                    prevBox = currBox
+                    currBox = nextBox
+                if nextBox is not dstBox:
+                    nextBox = bck_parent[nextBox]
                 while (nextBox is not dstBox):
                     this_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
                     path.append(this_segment)
