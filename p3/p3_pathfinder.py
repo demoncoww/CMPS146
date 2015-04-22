@@ -36,20 +36,21 @@ def find_path(src, dst, mesh):
         print "Destination point not on graph."
         return path, visited_boxes
     #print visited_boxes
+
     while (box_fringe): #pop the first item on the fringe
-        curr_box = heappop(box_fringe)[1]
-        children = mesh['adj'][curr_box]
+        popped_box = heappop(box_fringe)[1]
+        children = mesh['adj'][popped_box]
         for child in children:
             if child not in visited_boxes:
                 visited_boxes.append(child)
-                x1 = (curr_box[2] + curr_box[3])/2
-                y1 = (curr_box[0] + curr_box[1])/2
+                x1 = (popped_box[2] + popped_box[3])/2
+                y1 = (popped_box[0] + popped_box[1])/2
                 x2 = (child[2] + child[3])/2
                 y2 = (child[0] + child[1])/2
-                distances[child] = distances[curr_box] + euclidDist(x1, y1, x2, y2)
+                distances[child] = distances[popped_box] + euclidDist(x1, y1, x2, y2)
                 score = distances[child] + euclidBoxHeuristic(child, dstBox) #add heuristic here for A*
                 heappush(box_fringe, (score, child))
-                parent[child] = curr_box
+                parent[child] = popped_box
             if child is dstBox:
                 pathBox = child
                 while parent[pathBox]:
@@ -136,8 +137,7 @@ def buildSegment(pt, currBox, nextBox):
 def euclidDist(x1, y1, x2, y2):
     x = ((x1-x2)**2)
     y = ((y1-y2)**2)
-    z = x+y
-    return math.sqrt(z)
+    return math.sqrt(x+y)
 
 class boxnode:
     def __init__(self,  box = None, parent = None):
