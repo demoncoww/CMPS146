@@ -4,10 +4,12 @@ from heapq import heappush, heappop
 
 def find_path(src, dst, mesh):
     visited_boxes = []
-    distances = {}
+    fwd_distances = {}
+    bck_distances = {}
     path = []
     box_fringe = []
-    parent = {}
+    fwd_parent = {}
+    bck_parent = {}
     detail_points = {} #holds the endpoint of a segment going through that box
     found_src = False
     found_dst = False
@@ -18,15 +20,19 @@ def find_path(src, dst, mesh):
         if src[0] in range (box[0], box[1]) and src[1] in range (box[2], box[3]):
             print "Src Box is", box, " and Source is ", src
             found_src = True
-            heappush(box_fringe, (0, box))
-            distances[box] = 0
+            heappush(box_fringe, (0, box, 'dst'))
+            fwd_distances[box] = 0
             visited_boxes.append(box)
             srcBox = box
+            detail_points[box] = src
         if dst[0] in range (box[0], box[1]) and dst[1] in range (box[2], box[3]):
             print "Dst Box is", box, " and Destination is ", dst
             found_dst = True
+            heappush(box_fringe, (0, box, 'src'))
+            bck_distances[box] = 0
+            visited_boxes.append(box)
             dstBox = box
-            detail_points[dstBox] = dst
+            detail_points[box] = dst
         if found_dst and found_src:
             break
     if not found_src:
@@ -38,46 +44,75 @@ def find_path(src, dst, mesh):
     #print visited_boxes
 
     while (box_fringe): #pop the first item on the fringe
-        popped_box = heappop(box_fringe)[1]
+        priority, popped_box, popped_goal = heappop(box_fringe)
         children = mesh['adj'][popped_box]
         for child in children:
-            if child not in visited_boxes:
+            if popped_goal is 'dst' and child not in fwd_distances:
                 visited_boxes.append(child)
                 x1 = (popped_box[2] + popped_box[3])/2
                 y1 = (popped_box[0] + popped_box[1])/2
                 x2 = (child[2] + child[3])/2
                 y2 = (child[0] + child[1])/2
-                distances[child] = distances[popped_box] + euclidDist(x1, y1, x2, y2)
-                score = distances[child] + euclidBoxHeuristic(child, dstBox) #add heuristic here for A*
-                heappush(box_fringe, (score, child))
-                parent[child] = popped_box
-            if child is dstBox:
-                pathBox = child
-                while parent[pathBox]:
-                    #print pathBox
-                    pathBox = parent[pathBox]
-                    if pathBox is srcBox: #build usable path
-                        currBox = dstBox
-                        nextBox = parent[currBox]
-                        segment = buildSegment(dst, currBox, nextBox) #build from destination through curr to next
-                        path.append(segment)
-                        detail_points[currBox] = segment[1]
-                        prevBox = currBox
-                        currBox = nextBox
-                        nextBox = parent[nextBox]
-                        while (nextBox is not srcBox):
-                            this_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
-                            path.append(this_segment)
-                            detail_points[currBox] = this_segment[1]
-                            prevBox = currBox
-                            currBox = nextBox
-                            nextBox = parent[nextBox]
-                        last_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
-                        path.append(last_segment)
-                        detail_points[currBox] = last_segment[1]
-                        path.append((detail_points[currBox], src))
-                        #print path
-                        return path, visited_boxes
+                fwd_distances[child] = fwd_distances[popped_box] + euclidDist(x1, y1, x2, y2)
+                score = fwd_distances[child] + euclidBoxHeuristic(child, dstBox)
+                heappush(box_fringe, (score, child, 'dst'))
+                fwd_parent[child] = popped_box
+            if popped_goal is 'src' and child not in bck_distances:
+                visited_boxes.append(child)
+                x1 = (popped_box[2] + popped_box[3])/2
+                y1 = (popped_box[0] + popped_box[1])/2
+                x2 = (child[2] + child[3])/2
+                y2 = (child[0] + child[1])/2
+                bck_distances[child] = bck_distances[popped_box] + euclidDist(x1, y1, x2, y2)
+                score = bck_distances[child] + euclidBoxHeuristic(child, srcBox)
+                heappush(box_fringe, (score, child, 'src'))
+                bck_parent[child] = popped_box
+            if ((popped_goal is 'dst' and child in bck_distances) or (popped_goal is 'src' and child in fwd_distances)):
+                currBox = child
+                nextBox = fwd_parent[currBox]
+                segment = buildSegment((((child[0]+child[1])/2),((child[2]+child[3])/2)), currBox, nextBox) #build from destination through curr to next
+                path.append(segment)
+                detail_points[currBox] = segment[1]
+                prevBox = currBox
+                currBox = nextBox
+                nextBox = fwd_parent[nextBox]
+                while (nextBox is not srcBox):
+                    this_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
+                    path.append(this_segment)
+                    detail_points[currBox] = this_segment[1]
+                    prevBox = currBox
+                    currBox = nextBox
+                    nextBox = fwd_parent[nextBox]
+                last_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
+                path.append(last_segment)
+                detail_points[currBox] = last_segment[1]
+                path.append((detail_points[currBox], src))
+                #print path
+
+                currBox = child
+                nextBox = bck_parent[currBox]
+                x = (child[2]+child[3])/2
+                y = (child[0]+child[1])/2
+                print "Child = ", child, " x = ", x, " y = ", y
+                segment = buildSegment((y, x), currBox, nextBox) #build from destination through curr to next
+                path.append(segment)
+                detail_points[currBox] = segment[1]
+                prevBox = currBox
+                currBox = nextBox
+                nextBox = bck_parent[nextBox]
+                while (nextBox is not dstBox):
+                    this_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
+                    path.append(this_segment)
+                    detail_points[currBox] = this_segment[1]
+                    prevBox = currBox
+                    currBox = nextBox
+                    nextBox = bck_parent[nextBox]
+                last_segment = buildSegment(detail_points[prevBox], currBox, nextBox)
+                path.append(last_segment)
+                detail_points[currBox] = last_segment[1]
+                path.append((detail_points[currBox], dst))
+                #print path
+                return path, visited_boxes
     print "No path found!"
     return (path, visited_boxes)
 
