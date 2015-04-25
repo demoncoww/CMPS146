@@ -56,12 +56,25 @@ class SlugBrain:
     # TODO: IMPLEMENT THIS METHOD
     #  (Use helper methods and classes to keep your code organized where
     #  approprioate.)
-    if(self.state == 'idle'):
-        print "idle"
     if(message == 'order'):
-        x, y = details[0], details[1]
-        print "x is ", x, "y is ", y
-        self.body.go_to((x,y))
+        #print details
+        if(type(details) is tuple):
+            x, y = details[0], details[1]
+            self.body.go_to((x,y))
+
+        if(details == 's'):
+            self.body.stop()
+
+        if(details == 'a'):
+            self.state = 'attack'
+
+    if(self.state == 'attack'):
+        if(self.target == None):
+            self.target = self.body.find_nearest('Mantis')
+            self.body.go_to(target)
+        self.body.set_alarm(3)
+        self.target = self.body.find_nearest('Mantis')
+        self.body.go_to(self.target)
 
     pass    
 
