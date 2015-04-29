@@ -50,6 +50,7 @@ class SlugBrain:
     self.body = body
     self.state = 'idle'
     self.target = None
+    self.has_resource = False
 
 
   def handle_event(self, message, details):
@@ -57,29 +58,86 @@ class SlugBrain:
     #  (Use helper methods and classes to keep your code organized where
     #  approprioate.)
     if(message == 'order'):
-        #print details
         if(type(details) is tuple):
             x, y = details[0], details[1]
             self.body.go_to((x,y))
 
         if(details == 's'):
             self.body.stop()
+            self.state = 'idle'
 
         if(details == 'a'):
             self.state = 'attack'
 
+        if(details == 'd'):
+            self.state = 'build'
+
+        if(details == 'f'):
+            self.state = 'harvest'
+
+    if(self.body.amount <= 0.5):
+        self.state = 'flee'
+
     if(self.state == 'attack'):
-        if(self.target == None):
+        if(message != 'collide' or details['what'] != 'Mantis'):
+            if(self.target == None):
+                self.target = self.body.find_nearest('Mantis')
+                self.body.go_to(self.target)
+            self.body.set_alarm(0.2)
             self.target = self.body.find_nearest('Mantis')
-            self.body.go_to(target)
-        self.body.set_alarm(3)
-        self.target = self.body.find_nearest('Mantis')
-        self.body.go_to(self.target)
+            self.body.go_to(self.target)
+
+    if(self.state == 'build'):
+        if(message != 'collide' or details['what'] != 'Nest'):
+            self.target = self.body.find_nearest('Nest')
+            self.body.go_to(self.target)
+
+    if(self.state == 'harvest' and self.has_resource == False):
+        if(message != 'collide' or details['what'] != 'Resource'):
+            self.target = self.body.find_nearest('Resource')
+            self.body.go_to(self.target)
+
+    if(self.state == 'harvest' and self.has_resource == True):
+        if(message != 'collide' or details['what'] != 'Nest'):
+            self.target = self.body.find_nearest('Nest')
+            self.body.go_to(self.target)
+
+    if(self.state == 'flee'):
+        if(message != 'collide' or details['what'] != 'Nest'):
+            self.target = self.body.find_nearest('Nest')
+            self.body.go_to(self.target)
+
+    if (message == 'collide' and details['what'] == 'Mantis' and self.state == 'attack'):
+        self.body.stop()
+        mantis = details['who']
+        mantis.amount -= 0.05
+        if(mantis.amount == 0.05):
+            self.target = None
+
+    if (message == 'collide' and details['what'] == 'Nest' and self.state == 'build'):
+        nest = details['who']
+        nest.amount += 0.01
+        if(nest.amount >= .99):
+            self.target = None
+            self.state = 'idle'
+
+    if (message == 'collide' and details['what'] == 'Nest' and self.state == 'harvest'):
+        self.has_resource = False
+
+    if (message == 'collide' and details['what'] == 'Nest' and self.state == 'flee'):
+        self.body.amount = 1
+        self.state = 'idle'
+        #slug can never escape because he's slow, set slug speed higher or mantis speed lower to show
+
+    if (message == 'collide' and details['what'] == 'Resource' and self.state == 'harvest' and self.has_resource == False):
+        resource = details['who']
+        resource.amount -= 0.25
+        self.has_resource = True
 
     pass    
 
 world_specification = {
-  'worldgen_seed': 13, # comment-out to randomize
+  'worldgen_seed': 3, # comment-out to randomize 13
   'nests': 2,
   'obstacles': 25,
   'resources': 5,
