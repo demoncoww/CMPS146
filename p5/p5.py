@@ -1,4 +1,4 @@
-import json
+import json, time, math
 from heapq import heappush, heappop
 from collections import namedtuple
 
@@ -86,25 +86,58 @@ def graph(state):
         if r.check(state):
             yield (r.name, r.effect(state), r.cost)
 
-def heuristic(state):
-    return 0
-
 def inventory_to_tuple(d):
     return tuple(d.get(name,0) for i,name in enumerate(Crafting['Items']))
-
-#h = inventory_to_tuple(state_dict)
 
 def make_initial_state(inventory):
     return inventory_to_tuple(inventory)
 
 initial_state = make_initial_state(Crafting['Initial'])
 
+def make_heuristic():
+    maxAmount = {}
+    for item in Crafting['Items']:
+        maxAmount[item] = 0
+    goal = Crafting['Goal']
+    for action in Crafting['Recipes'].values():
+        if 'Produces' in action:
+            for item, amount in action['Produces'].items():
+                if item in goal:
+                    maxCraft = math.ceil(goal[item]/float(amount))*amount
+                    #print goal[item]/amount
+                    if maxAmount[item] < maxCraft:
+                        maxAmount[item] = maxCraft
+        if 'Requires' in action:
+            for item, amount in action['Requires'].items():
+                amount = 1 if amount else 0
+                if maxAmount[item] < amount:
+                    maxAmount[item] = amount
+        if 'Consumes' in action:
+            for item, amount in action['Consumes'].items():
+                if maxAmount[item] < amount:
+                    maxAmount[item] = amount
+    maxAmount = inventory_to_tuple(maxAmount)
+    print maxAmount
+    def heuristic(state):
+        h = 0
+        #print zip(state,maxAmount)
+        for item1, item2 in zip(state,maxAmount):
+            if item1 > item2:
+                #print item1, item2
+                return 1000000
+        return h
+    return heuristic
+
+heuristic = make_heuristic()
+
 def search(graph, initial, is_goal, limit, heuristic):
+    s_time = time.time()
     start = initial
     queue = [(0, start)]
     parent = {start : None}
     dist = {start : 0}
-    while limit > 0:
+    #print  limit
+    while time.time() - s_time < limit:
         cDist, node = heappop(queue)
         if is_goal(node):
             plan, curr = [], node
@@ -113,6 +146,7 @@ def search(graph, initial, is_goal, limit, heuristic):
                 plan.append((cost,action,curr))
                 curr = par
             plan.reverse()
+            print 'Search Time: ', (time.time() - s_time), '\n'
             return dist[node], plan
         for adj in graph(node):
             #print neighbor
@@ -122,7 +156,6 @@ def search(graph, initial, is_goal, limit, heuristic):
                 dist[neighbor] = newDist
                 heappush(queue, (newDist+heuristic(neighbor), neighbor))
                 parent[neighbor] = (cost,action,node)
-        limit -= 1
     return 0, []
 
 # Container class for holding compiled recipes
@@ -134,9 +167,21 @@ for name, rule in Crafting['Recipes'].items():
     recipe = Recipe(name, checker, effector, rule['Time'])
     all_recipes.append(recipe)
 
-#print initial_state
-#print is_goal(initial_state)
-search(graph,initial_state,is_goal,5000,heuristic)
+def printing(total_cost, states):
+    # Prints total cost and cost, action name, and current inventory of each step
+    if states:
+        for cost, action, state in states:
+            p_state = []
+            for i, name in enumerate(Crafting['Items']):
+                if state[i] != 0:
+                    p_state.append((name, state[i]))
+            print cost, ',', action, ',', p_state, '\n'
+        print 'Total Cost: ', total_cost, 'Length: ', len(states)
+    else:
+        print 'Did not find solution'
+
+c, s = (search(graph,initial_state,is_goal,200,heuristic))
+printing(c, s)
 
 
 
@@ -145,27 +190,3 @@ search(graph,initial_state,is_goal,5000,heuristic)
 
 
 
-
-
-
-
-
-
-
-
-t_initial = 'a'
-t_limit = 20
-
-edges = {'a': {'b':1,'c':10}, 'b':{'c':1}}
-
-def t_graph(state):
-	for next_state, cost in edges[state].items():
-		yield ((state,next_state), next_state, cost)
-
-def t_is_goal(state):
-	return state == 'c'
-
-def t_heuristic(state):
-	return 0
-
-#print search(t_graph, t_initial, t_is_goal, t_limit, t_heuristic)
