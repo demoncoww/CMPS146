@@ -95,7 +95,7 @@ class Simulator(object):
     if   element is 'A':
       return True # always remain alive in the air
     elif element is 'E':
-      return False # alway die when somehow in earth
+      return False # always die when somehow in earth
     elif element is 'W':
       return 'water_survival' in abilities
     elif element is 'F':

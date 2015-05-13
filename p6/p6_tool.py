@@ -50,7 +50,7 @@ def display_design_on_canvas(canvas, design):
     bbox = (TILE_SIZE*i+shrink, TILE_SIZE*j+shrink, TILE_SIZE*(i+1)-shrink, TILE_SIZE*(j+1)-shrink)
     canvas.create_oval(bbox, fill='', outline='red',width=2)
 
-  def draw_inspection_line((i1,j1),(i2,j2),offset_obj=None, color_obj=None):
+  def draw_line((i1,j1),(i2,j2),offset_obj=None, color_obj=None):
     oi, oj = OFFSETS[offset_obj]
     color = COLORS[color_obj]
     canvas.create_line(
@@ -78,7 +78,7 @@ def display_design_on_canvas(canvas, design):
     canvas.create_rectangle(bbox, outline='gray', tags=('inspection',), width=2)
 
     try:
-      p6_analysis.inspect(coords, draw_inspection_line)
+      p6_analysis.inspect(coords, draw_line)
     except:
       print_exc()
 
