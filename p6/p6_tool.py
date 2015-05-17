@@ -100,7 +100,7 @@ def load_design(filename):
   rows = len(char_table)
   cols = len(char_table[0])
   specials = {}
-  elements = {}
+  elements = defaultdict(lambda: 'E')
   for j in range(rows):
     for i in range(cols):
       char = char_table[j][i]
