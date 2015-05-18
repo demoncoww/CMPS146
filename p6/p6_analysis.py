@@ -21,8 +21,8 @@ def analyze(design):
     VISITED[init] = True
     PREV[(1,1)] = (1,1)
 
-    for i in sim.specials:
-        Specials[i] = sim.specials[i]
+    for key, value in sim.specials.iteritems():
+        Specials[value] = key
 
     while queue:
         curr_state = heappop(queue)
@@ -39,7 +39,6 @@ def analyze(design):
                         PREV[next_state[0]] = pos
 
 
-
 def inspect((i,j), draw_line):
     dst = (i, j)
     if dst in ANALYSIS:
@@ -49,8 +48,10 @@ def inspect((i,j), draw_line):
         path = []
 
         if ANALYSIS[dst]:
+            #take what the number of elements needed for
+            #the area then work backward in getting them
             num = len(ANALYSIS[dst])
-
+                    
 
         else:
             while prev != src:
