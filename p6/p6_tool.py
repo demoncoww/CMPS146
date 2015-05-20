@@ -78,7 +78,7 @@ def display_design_on_canvas(canvas, design):
     canvas.create_rectangle(bbox, outline='gray', tags=('inspection',), width=2)
 
     try:
-      p6_analysis.inspect(coords, draw_line)
+      p6_analysis.inspect(coords, draw_line, analysis)
     except:
       print_exc()
 
@@ -86,7 +86,7 @@ def display_design_on_canvas(canvas, design):
   canvas.tag_bind('tile','<Enter>',enter)
   
   try:
-    p6_analysis.analyze(design)
+    analysis = p6_analysis.analyze(design)
   except:
     print_exc()
 
