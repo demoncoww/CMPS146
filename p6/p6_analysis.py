@@ -1,70 +1,47 @@
 from p6_game import Simulator
 from heapq import heappush, heappop
-from collections import OrderedDict
+import Queue as Q
+import p6_tool
 
-ANALYSIS = OrderedDict()
-PREV = OrderedDict()
-VISITED = {}
-Specials = {}
+ANALYSIS = {}
 
 def analyze(design):
-    ANALYSIS.clear()
+    """ANALYSIS.clear()
     VISITED.clear()
     PREV.clear()
-    Specials.clear
+    Specials.clear"""
     sim = Simulator(design)
-    init = sim.get_initial_state() #states are position, abilities
-    pos, abilities = init
-    moves = sim.get_moves() #get_moves returns UP, DOWN, ... , NOTHING
-    queue = []
-    heappush(queue, init)
-    VISITED[init] = True
-    PREV[(1,1)] = (1,1)
+    p, a = sim.get_initial_state() #states are position, abilities
+    queue = Q.PriorityQueue()
+    queue.put((0, p, a))
 
-    for i in sim.specials:
-        Specials[i] = sim.specials[i]
-
-    while queue:
-        curr_state = heappop(queue)
-        pos, abilities = curr_state
-        if pos not in ANALYSIS:
-            ANALYSIS[pos] = abilities
+    while not queue.empty():
+        curr_state = queue.get()
+        moves = sim.get_moves()
+        states = []
         for m in moves:
-            next_state = sim.get_next_state(curr_state, m)
-            if next_state:
-                if not VISITED.get(next_state):
-                    heappush(queue, next_state)
-                    VISITED[next_state] = True
-                    if not PREV.get(next_state[0]):
-                        PREV[next_state[0]] = pos
+            if sim.get_next_state((curr_state[1], curr_state[2]), m) != None:
+                pos, abs = sim.get_next_state((curr_state[1], curr_state[2]), m)
+                state = (curr_state[0] + 1, pos, abs)
+                states.append(state)
+        for s in states:
+            this = (s[1], s[2])
+            if this not in ANALYSIS:
+                ANALYSIS[this] = (curr_state[1], curr_state[2])
+                queue.put(s)
 
 
 
 def inspect((i,j), draw_line):
-    dst = (i, j)
-    if dst in ANALYSIS:
-        src = Specials[0]
-        curr = PREV[dst]
-        prev = dst
-        path = []
 
-        if ANALYSIS[dst]:
-            num = len(ANALYSIS[dst])
-
-
-        else:
-            while prev != src:
-                path.append((prev, curr))
-                prev = curr
-                curr = PREV[curr]
-
-        for c, p in path:
-            draw_line(p, c)
-
-
-        print "Looking at", dst, "is reachable with", ANALYSIS[dst]
-    else:
-        print "Unreachable location", dst
+    for this in ANALYSIS:
+        if this[0] == (i, j):
+            curr = this
+            color = p6_tool.make_color()
+            offset = p6_tool.make_offset()
+            while ANALYSIS[curr] != None:
+                draw_line(curr[0], ANALYSIS[curr][0], offset, color)
+                curr = ANALYSIS[curr]
         
         
         
