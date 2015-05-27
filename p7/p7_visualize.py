@@ -4,21 +4,6 @@ import collections
 import random
 import sys
 
-def solve(*args):
-    """Run clingo with the provided argument list and return the parsed JSON result."""
-    
-    CLINGO = "./clingo-4.5.0-macos-10.9/clingo"
-    
-    clingo = subprocess.Popen(
-        [CLINGO, "--outf=2"] + list(args),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = clingo.communicate()
-    if err:
-        print err
-        
-    return parse_json_result(out)
-
 def parse_json_result(out):
     """Parse the provided JSON text and extract a dict
     representing the predicates described in the first solver result."""
@@ -88,10 +73,13 @@ def side_by_side(*blocks):
         lines.append(' '.join(tup))
     return '\n'.join(lines)
 
-def main(argv):
-  prog, filename = argv 
+def visualize(filename): 
   jsonData = open(filename, 'r').read()
   design = parse_json_result(jsonData)
   print render_ascii_dungeon(design)
-  
-main(sys.argv)
+
+if len(sys.argv) > 1:
+    prog, filename = sys.argv
+    visualize(filename)
+else:
+    print "p7_visualize.py requires a json filename argument to read from"
