@@ -1,3 +1,9 @@
+import subprocess
+import json
+import collections
+import random
+import sys
+
 def solve(*args):
     """Run clingo with the provided argument list and return the parsed JSON result."""
     
@@ -46,12 +52,6 @@ def parse_json_result(out):
     
     return dict(preds)
 
-import subprocess
-import json
-import collections
-import random
-import sys
-
 def solve_randomly(*args):
     """Like solve() but uses a random sign heuristic with a random seed."""
     args = list(args) + ["--sign-def=3","--seed="+str(random.randint(0,1<<30))]
@@ -87,3 +87,11 @@ def side_by_side(*blocks):
     for tup in zip(*map(lambda b: b.split('\n'), blocks)):
         lines.append(' '.join(tup))
     return '\n'.join(lines)
+
+def main(argv):
+  prog, filename = argv 
+  jsonData = open(filename, 'r').read()
+  design = parse_json_result(jsonData)
+  print render_ascii_dungeon(design)
+  
+main(sys.argv)
