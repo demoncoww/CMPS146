@@ -51,7 +51,15 @@ def find_path(src, dst, mesh):
         priority, popped_box, popped_goal = heappop(box_fringe)
         children = mesh['adj'][popped_box]
         for child in children:
-            if popped_goal is 'dst' and child not in fwd_distances:
+            x1 = (popped_box[2] + popped_box[3])/2
+            y1 = (popped_box[0] + popped_box[1])/2
+            x2 = (child[2] + child[3])/2
+            y2 = (child[0] + child[1])/2
+            if popped_goal is 'dst':
+                temp_dist = fwd_distances[popped_box] + euclidDist(x1, y1, x2, y2)
+            else :
+                temp_dist = bck_distances[popped_box] + euclidDist(x1, y1, x2, y2)
+            if popped_goal is 'dst' and (child not in fwd_distances or temp_dist < fwd_distances[child]) :
                 visited_boxes.append(child)
                 x1 = (popped_box[2] + popped_box[3])/2
                 y1 = (popped_box[0] + popped_box[1])/2
@@ -61,7 +69,7 @@ def find_path(src, dst, mesh):
                 score = fwd_distances[child] + euclidBoxHeuristic(child, dstBox)
                 heappush(box_fringe, (score, child, 'dst'))
                 fwd_parent[child] = popped_box
-            if popped_goal is 'src' and child not in bck_distances:
+            if popped_goal is 'src' and (child not in bck_distances or temp_dist < bck_distances[child]):
                 visited_boxes.append(child)
                 x1 = (popped_box[2] + popped_box[3])/2
                 y1 = (popped_box[0] + popped_box[1])/2
